@@ -233,7 +233,7 @@ RocketAPI is **open-source** and **community-driven**!
 
 ### 🚀 **Get Started:**
 ```bash
-git clone https://github.com/anzize/rocketapi
+git clone https://github.com/Tryboy869/rocketapi
 cd rocketapi
 pip install -e .
 python examples/hello_world.py
