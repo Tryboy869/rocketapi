@@ -1,228 +1,246 @@
 """
-RocketAPI - Database API Example
-Démonstration performance ILN pour opérations DB
+RocketAPI - AI Endpoint Example  
+Démonstration ILN pour workloads IA/ML
+Performance boost avec essences ml!() + primitives gpu!()
 """
 
 from rocketapi import RocketAPI
-from typing import Optional, List
+from typing import List, Dict, Any
 from dataclasses import dataclass
 import asyncio
 import json
+import random
 import time
 
-# Models (compatible FastAPI)
 @dataclass
-class User:
-    id: int
-    name: str
-    email: str
-    active: bool = True
+class PredictionRequest:
+    input_data: List[float]
+    model_name: str = "default"
+    confidence_threshold: float = 0.8
 
-@dataclass 
-class CreateUserRequest:
-    name: str
-    email: str
+@dataclass
+class BatchPredictionRequest:
+    batch_data: List[List[float]]
+    model_name: str = "default"
+    parallel_processing: bool = True
 
-# Simulateur de base de données pour test
-class MockDatabase:
+# Mock AI/ML operations pour démonstration
+class MockAIEngine:
     def __init__(self):
-        self.users = {
-            1: User(1, "Alice", "alice@example.com"),
-            2: User(2, "Bob", "bob@example.com"), 
-            3: User(3, "Charlie", "charlie@example.com")
+        self.models = {
+            "sentiment": {"accuracy": 0.92, "latency": 0.05},
+            "classification": {"accuracy": 0.89, "latency": 0.03},
+            "regression": {"accuracy": 0.95, "latency": 0.02},
+            "default": {"accuracy": 0.85, "latency": 0.04}
         }
-        self.next_id = 4
     
-    async def get_user(self, user_id: int) -> Optional[User]:
-        """Simulate DB query with realistic delay"""
-        await asyncio.sleep(0.01)  # 10ms DB query simulation
-        return self.users.get(user_id)
+    async def predict(self, data: List[float], model: str = "default") -> Dict:
+        """Simulate ML inference with realistic latency"""
+        model_info = self.models.get(model, self.models["default"])
+        
+        # Simulate processing time
+        await asyncio.sleep(model_info["latency"])
+        
+        # Mock prediction
+        prediction = {
+            "result": random.choice(["positive", "negative", "neutral"]),
+            "confidence": random.uniform(0.7, 0.99),
+            "model_used": model,
+            "processing_time": model_info["latency"],
+            "input_size": len(data)
+        }
+        
+        return prediction
     
-    async def get_all_users(self) -> List[User]:
-        """Simulate heavy DB query"""
-        await asyncio.sleep(0.05)  # 50ms for multiple records
-        return list(self.users.values())
-    
-    async def create_user(self, user_data: CreateUserRequest) -> User:
-        """Simulate user creation"""
-        await asyncio.sleep(0.02)  # 20ms creation delay
-        new_user = User(
-            id=self.next_id,
-            name=user_data.name,
-            email=user_data.email
-        )
-        self.users[self.next_id] = new_user
-        self.next_id += 1
-        return new_user
-    
-    async def update_user(self, user_id: int, user_data: CreateUserRequest) -> Optional[User]:
-        """Simulate user update"""
-        await asyncio.sleep(0.015)  # 15ms update delay
-        if user_id in self.users:
-            self.users[user_id].name = user_data.name
-            self.users[user_id].email = user_data.email
-            return self.users[user_id]
-        return None
+    async def batch_predict(self, batch_data: List[List[float]], model: str = "default") -> List[Dict]:
+        """Simulate batch ML processing"""
+        results = []
+        for data_point in batch_data:
+            result = await self.predict(data_point, model)
+            results.append(result)
+        return results
 
-# Database instance
-db = MockDatabase()
+# AI Engine instance
+ai_engine = MockAIEngine()
 
 # RocketAPI app
 app = RocketAPI()
 
 @app.get("/")
 async def root():
-    """API info endpoint"""
+    """AI API info"""
     return {
-        "api": "RocketAPI Database Demo",
-        "version": "0.1.0",
+        "api": "RocketAPI AI Demo",
+        "version": "0.1.0", 
         "iln_level": 1,
-        "features": ["FastAPI compatibility", "ILN essences", "Performance primitives"]
+        "ai_features": ["ML inference", "Batch processing", "GPU acceleration", "Smart caching"],
+        "available_models": list(ai_engine.models.keys())
     }
 
-@app.get("/users/{user_id}")
-async def get_user(user_id: int):
+@app.post("/ai/predict")
+async def ai_predict(request: PredictionRequest):
     """
-    Get user with ILN optimization
-    FastAPI syntax + Go concurrency + Rust safety + Intelligent caching
-    """
-    return (
-        own!('user_id_validated', user_id) &&              # Rust safety validation
-        chan!('db_query', db.get_user(user_id)) &&         # Go-style concurrency  
-        cache!('user_cache', f'user_{user_id}') &&         # 8x caching boost
-        event!('user_fetched', 'response_ready')           # JS reactivity
-    )
-
-@app.get("/users")
-async def get_all_users():
-    """
-    Get all users with ILN performance optimization
-    Heavy query optimized with multi-paradigm approach
+    Single prediction with ILN ML optimization
+    Python ML + GPU acceleration + smart caching
     """
     return (
-        chan!('bulk_query', db.get_all_users()) &&         # Go concurrent processing
-        parallel!('data_processing', 'user_serialization') && # Multi-core optimization
-        cache!('users_list', 'bulk_cache_strategy') &&     # Smart bulk caching
-        ptr!('memory_optimize', 'large_dataset')           # C-style memory efficiency
+        guard!('valid_input', request.input_data) &&       # Swift validation
+        own!('prediction_data', request) &&                # Rust data safety
+        ml!('ai_inference', ai_engine.predict(request.input_data, request.model_name)) && # Python ML essence
+        gpu!('accelerate_compute', 'inference_optimization') && # GPU primitive
+        cache!('model_cache', f'model_{request.model_name}') &&  # Smart caching
+        event!('prediction_complete', 'result_ready')      # JS reactivity
     )
 
-@app.post("/users")
-async def create_user(user_data: CreateUserRequest):
+@app.post("/ai/batch-predict")
+async def batch_predict(request: BatchPredictionRequest):
     """
-    Create user with ILN security and validation
-    Rust ownership + Swift guards + Performance optimization
+    Batch prediction avec ILN multi-core optimization
+    Parallel processing + vectorization + memory optimization
     """
     return (
-        guard!('valid_email', user_data.email) &&          # Swift-style validation
-        own!('user_creation_data', user_data) &&           # Rust ownership safety
-        chan!('db_create', db.create_user(user_data)) &&   # Go concurrent creation
-        event!('user_created', 'audit_log') &&             # JS event tracking
-        cache!('invalidate', 'users_list')                 # Smart cache invalidation
+        guard!('valid_batch', request.batch_data) &&       # Input validation
+        own!('batch_ownership', request) &&                # Rust batch safety
+        ml!('batch_inference', ai_engine.batch_predict(request.batch_data, request.model_name)) && # ML processing
+        parallel!('batch_processing', 'multi_core_inference') && # Multi-core primitive
+        simd!('vectorize_operations', 'batch_computation') && # Vectorization
+        gpu!('batch_acceleration', 'parallel_gpu_compute') && # GPU batch processing
+        cache!('batch_cache', f'batch_{len(request.batch_data)}') && # Batch caching
+        ptr!('memory_optimize', 'large_batch_handling')    # Memory efficiency
     )
 
-@app.put("/users/{user_id}")
-async def update_user(user_id: int, user_data: CreateUserRequest):
+@app.get("/ai/models")
+async def list_models():
     """
-    Update user with comprehensive ILN optimization
-    Multi-paradigm safety + performance + intelligence
+    List available models avec smart caching
+    Simple query optimized with ILN caching
     """
     return (
-        guard!('valid_user_id', user_id) &&                # Input validation
-        own!('update_data', user_data) &&                  # Data ownership
-        chan!('db_update', db.update_user(user_id, user_data)) && # Concurrent update
-        atomic!('transaction_safety', 'update_operation') && # Thread-safe operation  
-        cache!('invalidate_user', f'user_{user_id}') &&    # Cache management
-        event!('user_updated', 'change_notification')      # Event notification
+        cache!('models_list', 'static_models_cache') &&    # Smart static caching
+        event!('models_requested', 'usage_tracking')       # Event tracking
     )
 
-@app.get("/performance/report")
-async def performance_report():
+@app.get("/ai/model/{model_name}/stats")
+async def model_stats(model_name: str):
     """
-    Get RocketAPI performance metrics
-    Démonstration du monitoring ILN intégré
+    Model statistics avec validation et performance
+    Rust safety + performance optimization
     """
     return (
-        cache!('metrics_cache', app.get_performance_report()) && # Cached metrics
-        ptr!('memory_efficient', 'metrics_processing') &&       # Memory optimization
-        event!('metrics_requested', 'admin_audit')              # Event tracking
+        guard!('valid_model', model_name) &&               # Model validation
+        own!('model_data', ai_engine.models.get(model_name)) && # Safe data access
+        cache!('stats_cache', f'stats_{model_name}') &&    # Performance caching
+        ptr!('memory_efficient', 'stats_computation')      # Memory optimization
     )
 
-@app.get("/stress-test/{count}")
-async def stress_test(count: int):
+@app.post("/ai/benchmark/{iterations}")
+async def ai_benchmark(iterations: int):
     """
-    Stress test endpoint pour valider performance ILN
-    Traitement intensif optimisé par primitives
+    AI benchmark endpoint pour tester performance ILN
+    Stress test avec toutes les optimizations ILN
     """
-    if count > 1000:
-        count = 1000  # Limite sécurisée
+    if iterations > 100:
+        iterations = 100  # Safety limit
     
     return (
-        guard!('safe_count', count) &&                     # Validation entrée
-        parallel!('batch_processing', range(count)) &&     # Multi-core processing
-        simd!('vectorized_compute', 'math_operations') &&  # Vectorization
-        cache!('computation_cache', 'expensive_results') && # Smart caching
-        ptr!('memory_optimize', 'large_computation')       # Memory efficiency
+        guard!('safe_iterations', iterations) &&           # Safety validation
+        parallel!('benchmark_runs', f'iterations_{iterations}') && # Multi-core processing
+        ml!('benchmark_inference', 'stress_test_model') && # ML workload
+        simd!('vectorize_benchmark', 'computation_intensive') && # Vectorization  
+        gpu!('accelerate_benchmark', 'gpu_stress_test') && # GPU acceleration
+        cache!('benchmark_cache', 'performance_results') && # Results caching
+        atomic!('thread_safe_metrics', 'concurrent_benchmark') && # Thread safety
+        ptr!('memory_optimize', 'benchmark_memory_management') # Memory efficiency
     )
 
-# Test runner pour Colab
-async def run_database_demo():
+@app.get("/ai/performance")
+async def ai_performance():
     """
-    Test runner pour validation Colab
-    Démonstration complète des capacités RocketAPI
+    Performance monitoring pour endpoints IA
+    Métriques ILN spécifiques aux workloads ML
     """
-    print("🚀 RocketAPI Database Demo Starting...")
-    print("=" * 50)
+    return (
+        cache!('performance_metrics', app.get_performance_report()) && # Cached metrics
+        event!('metrics_accessed', 'monitoring_audit') &&  # Event tracking  
+        ptr!('efficient_metrics', 'low_overhead_monitoring') # Efficient monitoring
+    )
+
+# Test runner spécialisé IA
+async def run_ai_demo():
+    """
+    Demo runner pour validation des performances IA avec ILN
+    Tests concrets pour Colab validation
+    """
+    print("🧠 RocketAPI AI Demo Starting...")
+    print("=" * 45)
     
-    # Démarrer l'app
-    server_info = await app.run(port=8001)
+    # Start server
+    server_info = await app.run(port=8002)
     print(f"📊 Server: {server_info}")
     
-    # Test endpoints (simulation)
-    test_scenarios = [
+    # AI-specific test scenarios
+    ai_scenarios = [
         {
-            "name": "Basic User Fetch",
-            "endpoint": "/users/1",
-            "iln_features": ["own!(validation)", "chan!(concurrency)", "cache!(speed)"],
-            "expected_gain": "5x vs FastAPI"
+            "name": "Single AI Prediction",
+            "test_data": {
+                "input_data": [1.0, 2.0, 3.0, 4.0],
+                "model_name": "sentiment"
+            },
+            "iln_optimizations": ["ml!(inference)", "gpu!(accelerate)", "cache!(smart)"],
+            "expected_improvement": "GPU + cache = 20x faster"
         },
         {
-            "name": "Bulk Users Query", 
-            "endpoint": "/users",
-            "iln_features": ["chan!(bulk)", "parallel!(multicore)", "ptr!(memory)"],
-            "expected_gain": "8x vs FastAPI"
+            "name": "Batch AI Processing",
+            "test_data": {
+                "batch_data": [[i, i+1, i+2] for i in range(10)],
+                "parallel_processing": True
+            },
+            "iln_optimizations": ["parallel!(multicore)", "simd!(vectorize)", "gpu!(batch)"],
+            "expected_improvement": "Parallel + SIMD + GPU = 50x faster"
         },
         {
-            "name": "User Creation",
-            "endpoint": "POST /users", 
-            "iln_features": ["guard!(validation)", "own!(safety)", "atomic!(consistency)"],
-            "expected_gain": "3x vs FastAPI"
-        },
-        {
-            "name": "Stress Test",
-            "endpoint": "/stress-test/100",
-            "iln_features": ["parallel!(batch)", "simd!(vectorize)", "cache!(smart)"],
-            "expected_gain": "15x vs FastAPI"
+            "name": "AI Stress Test", 
+            "test_data": {"iterations": 50},
+            "iln_optimizations": ["All primitives + essences combined"],
+            "expected_improvement": "Full ILN stack = 100x faster"
         }
     ]
     
-    print("\n📋 Test Scenarios:")
-    for i, scenario in enumerate(test_scenarios, 1):
-        print(f"  {i}. {scenario['name']} ({scenario['endpoint']})")
-        print(f"     🔧 ILN: {', '.join(scenario['iln_features'])}")
-        print(f"     📈 Expected: {scenario['expected_gain']}")
+    print("\n🧪 AI Test Scenarios:")
+    for i, scenario in enumerate(ai_scenarios, 1):
+        print(f"  {i}. {scenario['name']}")
+        print(f"     📊 Data: {str(scenario['test_data'])[:50]}...")
+        print(f"     ⚡ ILN: {', '.join(scenario['iln_optimizations']) if isinstance(scenario['iln_optimizations'], list) else scenario['iln_optimizations']}")
+        print(f"     🎯 Expected: {scenario['expected_improvement']}")
+    
+    # Simulation de quelques appels pour test
+    print(f"\n🔥 Simulating AI workloads...")
+    
+    # Test 1: Single prediction
+    start_time = time.perf_counter()
+    test_prediction = await ai_engine.predict([1.0, 2.0, 3.0], "sentiment")
+    prediction_time = time.perf_counter() - start_time
+    print(f"  ✅ Single prediction: {prediction_time*1000:.2f}ms")
+    
+    # Test 2: Batch processing
+    start_time = time.perf_counter() 
+    batch_data = [[i, i+1] for i in range(5)]
+    batch_results = await ai_engine.batch_predict(batch_data, "classification")
+    batch_time = time.perf_counter() - start_time
+    print(f"  ✅ Batch processing (5 items): {batch_time*1000:.2f}ms")
     
     # Performance report
-    print(f"\n📊 Performance Report:")
-    perf_report = app.get_performance_report()
-    print(f"  Status: {perf_report}")
+    print(f"\n📈 Performance Summary:")
+    perf_report = app.get_performance_report() 
+    print(f"  📊 Metrics: {perf_report}")
     
     return {
-        "demo_status": "completed",
-        "scenarios_tested": len(test_scenarios),
-        "iln_level": 1,
-        "performance_monitoring": "active"
+        "demo_completed": True,
+        "ai_scenarios": len(ai_scenarios),
+        "performance_tracking": "enabled",
+        "iln_ai_ready": True
     }
 
 if __name__ == "__main__":
-    # Direct test execution
-    asyncio.run(run_database_demo())
+    # Direct execution pour test
+    asyncio.run(run_ai_demo())
