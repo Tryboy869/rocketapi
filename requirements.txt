@@ -1,0 +1,23 @@
+# RocketAPI - Dépendances Minimales (Philosophie ILN)
+# Maximum de puissance, minimum de dépendances
+
+# Core requirements (absolument nécessaires)
+typing-extensions>=4.0.0  # Support Python 3.8+ type hints
+
+# Optional performance boosters (installs automatiquement si disponible)
+# uvloop>=0.16.0           # Faster async event loop (Linux/macOS)
+# orjson>=3.6.0            # Faster JSON serialization
+# cython>=0.29.0           # Compilation speedup
+
+# Development dependencies (pour dev local uniquement)
+# pytest>=6.0.0
+# pytest-asyncio>=0.18.0
+# pytest-benchmark>=4.0.0
+# black>=22.0.0
+# isort>=5.10.0
+# mypy>=0.950
+# pre-commit>=2.17.0
+
+# Testing dependencies (pour tests uniquement)
+# httpx>=0.23.0            # HTTP client pour tests
+# requests>=2.25.0         # Fallback HTTP client
